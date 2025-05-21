@@ -28,7 +28,7 @@ app.get("/", async (req, res) => {
 		const now = new Date().toLocaleString();
 
 		const message = `
-			<b>✅ New visitor logged</b>:
+			✅ New visitor logged:
 
 		📍 IP: ${userIP}
 		🌎 Country: ${data.country}
