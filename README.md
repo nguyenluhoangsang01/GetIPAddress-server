@@ -1,16 +1,16 @@
 # 🌐 IP Logger & Lookup Server
 
-A simple Express server that logs visitor IPs silently and sends detailed information (location, device, etc.) via email. Also includes an API to manually look up any IP address.
+An advanced Express server that silently logs visitor IPs, collects geolocation and device info, sends it to your email, and optionally redirects users. It also supports manual IP lookups.
 
 ---
 
 ## ✅ Features
 
-- 🔒 Logs visitor IP, location, browser, and device silently
-- 📩 Sends IP details to your email using Gmail
-- 🌎 Includes `/lookup/:ip` route to manually check IP info
-- ⚙️ Easy to deploy on Railway or Vercel
-- 🧪 No data shown to visitor (silent logging with `204`)
+- 🔒 Logs visitor IP, location, browser, OS, language, and referrer
+- 🕒 Shows local time based on visitor's timezone
+- 📩 Sends a full log report to your Gmail inbox
+- 🔁 Automatically redirects visitors after logging (e.g., to Google)
+- 🌎 Provides `/lookup/:ip` API to manually check IP info
 
 ---
 
@@ -19,8 +19,9 @@ A simple Express server that logs visitor IPs silently and sends detailed inform
 - Node.js + Express
 - Nodemailer (Gmail SMTP)
 - IP-API.com (for IP info)
-- ua-parser-js (to parse User-Agent)
-- dotenv
+- ua-parser-js (for browser/device detection)
+- Luxon (for timezone-aware local time)
+- dotenv (for environment config)
 
 ---
 
@@ -37,10 +38,9 @@ cd GetIPAddress-server
 
 ```bash
 npm i
-npm run dev
 ```
 
-### 3. Create `.env` file
+### 3. Create a `.env` file
 
 ```env
 GMAIL_USER=your-email@gmail.com
@@ -48,9 +48,9 @@ GMAIL_PASS=your-app-password
 GMAIL_TO=your-email@gmail.com
 ```
 
-> ⚠️ Use [App Passwords](https://support.google.com/accounts/answer/185833) with Gmail — not your actual password!
+> ⚠️ Use [App Passwords](https://support.google.com/accounts/answer/185833) with Gmail if you have 2FA enabled.
 
-### 4. Run the server
+### 4. Start the server
 
 ```bash
 npm start
@@ -58,64 +58,57 @@ npm start
 
 ---
 
-## 📬 Email Output Example
+## 🔗 API Routes
+
+### `/` (GET)
+Logs the visitor's IP and metadata, sends email, then redirects to Google.
+
+### `/lookup/:ip` (GET)
+Returns public IP info for any IP address.
+
+**Example:**
+```
+GET /lookup/8.8.8.8
+```
+
+---
+
+## 📬 Sample Email Output
 
 ```
 ✅ New visitor logged:
 
-📍 IP:
-🌎 Country:
-🏙️ City:
-🏢 ISP:
-🕒 Time:
+📍 IP: xxxxxxxxxx
+🌎 Country: xxxxxxxxxx
+🏙️ City: xxxxxxxxxx
+🏢 ISP: xxxxxxxxxx
+🕒 Local Time: xxxxxxxxxx
 
-🧠 Device:
-🛠️ OS:
-🌐 Browser:
+🧠 Device: xxxxxxxxxx
+🛠️ OS: xxxxxxxxxx
+🌐 Browser: xxxxxxxxxx
 
-🔗 Referrer:
-🗣️ Language:
+🔗 Referrer: xxxxxxxxxx
+🗣️ Language: xxxxxxxxxx
 ```
 
 ---
 
-## 🌐 API Routes
+## 🛠 Deployment
 
-### `/` (GET)
+You can deploy this to platforms like:
 
-Logs the current visitor's IP and info. Returns nothing (204).
+- [Railway](https://railway.app/)
+- [Render](https://render.com/)
+- [Vercel (via serverless)](https://vercel.com/)
 
-### `/lookup/:ip` (GET)
-
-Returns geolocation info about any given IP.
-
-**Example:**
-```
-GET /lookup/:ip
-```
+Make sure to add `.env` variables to your project dashboard.
 
 ---
 
-## 🛠 Deployment (Railway)
+## ⚠️ Legal Disclaimer
 
-1. Connect repo to [Railway](https://railway.app/)
-2. Add `.env` variables in Railway Dashboard
-3. Deploy and test the live URL
-
----
-
-## 🧠 Future Ideas
-
-- Save logs to a database (MongoDB, SQLite, Supabase)
-- Add Telegram/Discord alerts
-- UI dashboard to view logs
-- IP blocklist feature
-
----
-
-## ⚠️ Legal Note
-
-This project is for educational or ethical use only. Do **not** use this tool to log or track users without consent, especially in production environments. Always follow local privacy laws (e.g. GDPR, CCPA).
+This tool is for **educational or ethical use only**. Do not log or track users without proper notice and consent. Always follow privacy laws like **GDPR**, **CCPA**, and your local jurisdiction.
 
 ---
 
