@@ -39,8 +39,8 @@ app.get("/", async (req, res) => {
 
 		// Send email
 		await transporter.sendMail({
-			from: `"IP Logger" IP: ${userIP}`,
-			to: process.env.EMAIL_TO,
+			from: `"IP Logger" <${process.env.GMAIL_USER}>`,
+			to: process.env.GMAIL_TO,
 			subject: "📩 New IP Visit Logged",
 			text: message,
 		});
